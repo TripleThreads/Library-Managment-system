@@ -1,0 +1,44 @@
+// back up
+	public static ArrayList<String> suggest() {
+		Connection con = Connect_Database.INISTANCE.Connect();
+		ArrayList<String> arr = new ArrayList<>();
+		try {
+			String customer_id = ReadText.ReadSession();
+			String Department = null;
+			// --------let us check department of our user using its its id ----//
+			String s = "select * from customer_list where customer_id = ?";
+			PreparedStatement p = con.prepareStatement(s);
+			p.setString(1, customer_id);
+			ResultSet r = p.executeQuery();
+			while (r.next()) {
+				Department = r.getString("department");
+			}
+
+			// then let us look for similar departments on our text file
+			File file = new File("dep.txt");
+			Scanner scan = new Scanner(file);
+			String[] dept = null;
+			while (scan.hasNext()) {
+				String[] de = scan.nextLine().split(":");
+				for (String title : de) {
+					if (title.toLowerCase().contains(Department.toLowerCase())) {
+						dept = de;
+						break;
+					}
+				}
+			}
+			String sql = "select title from items_list where Suggestion = ?";
+			PreparedStatement pr = con.prepareStatement(sql);
+			for (String d : dept) {
+				pr.setString(1, d);
+				ResultSet res = pr.executeQuery();
+				while (res.next()) {
+					arr.add(res.getString("Title"));
+				}
+			}
+			scan.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return arr;
+	}
